@@ -8,7 +8,9 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     cars: [],
-    activeCar: {}
+    activeCar: {},
+    jobs: [],
+    activeJob: {}
   },
   mutations: {
     setCars(state, cars) {
@@ -22,6 +24,18 @@ export default new Vuex.Store({
     },
     removeCar(state, id) {
       state.cars = state.cars.filter(c => c.id != id)
+    },
+    setJobs(state, jobs) {
+      state.jobs = jobs
+    },
+    addJob(state, job) {
+      state.jobs.push(job)
+    },
+    setActiveJob(state, job) {
+      state.activeJob = job
+    },
+    removeJob(state, id) {
+      state.job = state.jobs.filter(j => j.id != id)
     }
   },
   actions: {
@@ -74,6 +88,52 @@ export default new Vuex.Store({
       } catch (error) {
         console.error(error)
       }
+
+    },
+    async getAllJobs({ commit }) {
+      try {
+        let res = await api.get('jobs')
+        commit("setJobs", res.data.data)
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    async getJobById({ commit }, id) {
+      try {
+        let res = await api.post('jobs', newJob)
+        commit("setActiveJob", res.data.data)
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    async createJob({ commit }, newJob) {
+      try {
+        let res = await api.post('jobs', newJob)
+        commit("addJob", res.data.data)
+        commit("setActiveJob", res.data.data)
+        router.push({ name: "JobDetails", params: { id: res.data.data._id } })
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    async apply({ commit }, apply) {
+      try {
+        let res = await api.put('jobs/' + apply.id, apply)
+        commit("setActiveJob", res.data)
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async deleteJob({ commit }, id) {
+      try {
+        await api.delete('jobs/' + id)
+        commit("removeJob", id)
+        commit("setActiveJob", {})
+        router.push({ name: "Jobs" })
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
 })
+
